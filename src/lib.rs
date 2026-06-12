@@ -213,6 +213,11 @@ impl TransactionInput {
 
     pub fn to_bytes(&self) -> Vec<u8> {
         // TODO: Serialize: OutPoint + Script (with CompactSize) + sequence (4 bytes LE)
+        out.extend_from_slice(&self.previous_output.to_bytes());
+        out.extend_from_slice(&self.script_sig.to_bytes());
+        out.extend_from_slice(&self.sequence.to_le_bytes());
+
+        out
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<(Self, usize), BitcoinError> {
