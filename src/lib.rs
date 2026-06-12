@@ -51,6 +51,7 @@ impl CompactSize {
             return Err(BitcoinError::InsufficientBytes);
         }
         match bytes[0] {
+            //_ arm is unreachable because bytes[0] is a u8 which can only ever be 0..=255
             0..=252 => Ok((CompactSize::new(bytes[0] as u64), 1)),
             0xFD => {
                 if bytes.len() < 3 {
@@ -74,8 +75,8 @@ impl CompactSize {
                     bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8],
                 ]);
                 Ok((CompactSize::new(val), 9))
-            }
-            _ => Err(BitcoinError::InvalidFormat),
+            } // _ => Err(BitcoinError::InvalidFormat),
+              // -> can never be reached since all possible u8 values are reached
         }
     }
 }
