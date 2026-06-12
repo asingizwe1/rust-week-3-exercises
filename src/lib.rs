@@ -159,6 +159,7 @@ pub struct Script {
 impl Script {
     pub fn new(bytes: Vec<u8>) -> Self {
         // TODO: Simple constructor
+        Script { bytes }
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
