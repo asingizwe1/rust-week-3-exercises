@@ -16,6 +16,7 @@ pub enum BitcoinError {
 impl CompactSize {
     pub fn new(value: u64) -> Self {
         // TODO: Construct a CompactSize from a u64 value
+        CompactSize { value: value }
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
@@ -24,12 +25,58 @@ impl CompactSize {
         // [0xFDxxxx] => 0xFD + u16 (2 bytes)
         // [0xFExxxxxxxx] => 0xFE + u32 (4 bytes)
         // [0xFFxxxxxxxxxxxxxxxx] => 0xFF + u64 (8 bytes)
+        let v = self.value;
+        if v <= 252 {
+            vec![v as u8]
+        } else if v <= 0xFFFF {
+            let mut out = vec![0xFD];
+            out.extend_from_slice(&(v as u16).to_le_bytes());
+            out
+        } else if v <= 0xFFFF_FFFF {
+            let mut out = vec![0xFE];
+            out.extend_from_slice(&(v as u32).to_le_bytes());
+            out
+        } else {
+            let mut out = vec![0xFF];
+            out.extend_from_slice(&v.to_le_bytes());
+            out
+        }
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<(Self, usize), BitcoinError> {
         // TODO: Decode CompactSize, returning value and number of bytes consumed.
         // First check if bytes is empty.
         // Check that enough bytes are available based on prefix.
+        if bytes.is_empty() {
+            return Err(BitcoinError::InsufficientBytes);
+        }
+        match bytes[0] {
+            0..=252 => Ok((CompactSize::new(u64), 1)),
+            0xFD => {
+                if bytes.len() < 3 {
+                    return Err(BitcoinError::InsufficientBytes);
+                }
+                let val = u16::from_le_bytes([bytes[1], bytes[2]]) as u64;
+                Ok((CompactSize::new(val), 3))
+            }
+            0xFE => {
+                if bytes.len() < 5 {
+                    return Err(BitcoinError::InsufficientBytes);
+                }
+                let val = u32::from_le_bytes([bytes[1], bytes[2], bytes[3], bytes[4]]) as u64;
+                Ok((CompactSize::new(val), 5))
+            }
+            0xFF => {
+                if bytes.len() < 9 {
+                    return Err(BitcoinError::InsufficientBytes);
+                }
+                let val = u64::from_le_bytes([
+                    bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8],
+                ]);
+                Ok((CompactSize::new(val), 9))
+            }
+            _ => Err(BitcoinError::InvalidFormat),
+        }
     }
 }
 
