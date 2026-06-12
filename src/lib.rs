@@ -164,11 +164,23 @@ impl Script {
 
     pub fn to_bytes(&self) -> Vec<u8> {
         // TODO: Prefix with CompactSize (length), then raw bytes
+        let len_prefix = CompactSize::new(self.bytes.len() as u64).to_bytes();
+        out.extend_from_slice(&len_prefix);
+        out.extend_from_slice(&self.bytes);
+        out
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<(Self, usize), BitcoinError> {
         // TODO: Parse CompactSize prefix, then read that many bytes
         // Return error if not enough bytes
+        let (len_cs, consumed_prefix) = CompactSize::from_bytes(bytes)?;
+
+        let len = len_cs.value as usize;
+        if bytes.len() < consumed_prefix + len {
+            return Err(BitcoinError::InsufficientBytes);
+        }
+        let script_bytes = bytes[consumed_prefix..consumed_prefix + len].to_vec();
+        Ok((Script::new(script_bytes), consumed_prefix + len))
     }
 }
 
@@ -176,6 +188,9 @@ impl Deref for Script {
     type Target = Vec<u8>;
     fn deref(&self) -> &Self::Target {
         // TODO: Allow &Script to be used as &[u8]
+        fn deref(&self) -> &Self::Target {
+            &self.bytes
+        }
     }
 }
 
