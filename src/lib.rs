@@ -281,6 +281,29 @@ impl BitcoinTransaction {
         // TODO: Read version, CompactSize for input count
         // Parse inputs one by one
         // Read final 4 bytes for lock_time
+        let mut offset = 0;
+
+        if bytes.len() < 4 {
+            return Err(BitcoinError::InsufficientBytes);
+        }
+        let version = u32::from_le_bytes(bytes[0..4].try_into().unwrap());
+        offset += 4;
+        let (input_count_cs, consumed_count) = CompactSize::from_bytes(&bytes[offset..])?;
+        offset += consumed_count;
+        let input_count = input_count_cs.value as usize;
+        let mut inputs = Vec::new();
+        for _ in 0..input_count {
+            let (input, consumed_input) = TransactionInput::from_bytes(&bytes[offset..])?;
+            offset += consumed_input;
+            inputs.push(input);
+        }
+        if bytes.len() < offset + 4 {
+            return Err(BitcoinError::InsufficientBytes);
+        }
+        let lock_time = u32::from_le_bytes(bytes[offset..offset + 4].try_into().unwrap());
+        offset += 4;
+
+        Ok((BitcoinTransaction::new(version, inputs, lock_time), offset))
     }
 }
 
