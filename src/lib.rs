@@ -225,6 +225,19 @@ impl TransactionInput {
         // - OutPoint (36 bytes)
         // - Script (with CompactSize)
         // - Sequence (4 bytes)
+        let mut offset = 0;
+
+        let (outpoint, consumed_out) = OutPoint::from_bytes(&bytes[offset..])?;
+        offset += consumed_out;
+        let (script, consumed_script) = Script::from_bytes(&bytes[offset..])?;
+        offset += consumed_script;
+        if bytes.len() < offset + 4 {
+            return Err(BitcoinError::InsufficientBytes);
+        }
+        let sequence = u32::from_le_bytes(bytes[offset..offset + 4].try_into().unwrap());
+        offset += 4;
+
+        Ok((TransactionInput::new(outpoint, script, sequence), offset))
     }
 }
 
@@ -238,6 +251,11 @@ pub struct BitcoinTransaction {
 impl BitcoinTransaction {
     pub fn new(version: u32, inputs: Vec<TransactionInput>, lock_time: u32) -> Self {
         // TODO: Construct a transaction from parts
+        BitcoinTransaction {
+            version,
+            inputs,
+            lock_time,
+        }
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
