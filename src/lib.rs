@@ -20,7 +20,6 @@ impl CompactSize {
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
-        let mut out = Vec::new();
         // TODO: Encode according to Bitcoin's CompactSize format:
         // [0x00–0xFC] => 1 byte
         // [0xFDxxxx] => 0xFD + u16 (2 bytes)
@@ -134,6 +133,7 @@ impl OutPoint {
 
     pub fn to_bytes(&self) -> Vec<u8> {
         // TODO: Serialize as: txid (32 bytes) + vout (4 bytes, little-endian)
+        let mut bytes = Vec::new();
         bytes.extend_from_slice(&self.txid.0);
         bytes.extend_from_slice(&self.vout.to_le_bytes());
         bytes
@@ -165,6 +165,7 @@ impl Script {
 
     pub fn to_bytes(&self) -> Vec<u8> {
         // TODO: Prefix with CompactSize (length), then raw bytes
+        let mut out = Vec::new();
         let len_prefix = CompactSize::new(self.bytes.len() as u64).to_bytes();
         out.extend_from_slice(&len_prefix);
         out.extend_from_slice(&self.bytes);
@@ -189,9 +190,7 @@ impl Deref for Script {
     type Target = Vec<u8>;
     fn deref(&self) -> &Self::Target {
         // TODO: Allow &Script to be used as &[u8]
-        fn deref(&self) -> &Self::Target {
-            &self.bytes
-        }
+        &self.bytes
     }
 }
 
@@ -214,6 +213,7 @@ impl TransactionInput {
 
     pub fn to_bytes(&self) -> Vec<u8> {
         // TODO: Serialize: OutPoint + Script (with CompactSize) + sequence (4 bytes LE)
+        let mut out = Vec::new();
         out.extend_from_slice(&self.previous_output.to_bytes());
         out.extend_from_slice(&self.script_sig.to_bytes());
         out.extend_from_slice(&self.sequence.to_le_bytes());
