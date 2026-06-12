@@ -264,6 +264,17 @@ impl BitcoinTransaction {
         // - CompactSize (number of inputs)
         // - each input serialized
         // - lock_time (4 bytes LE)
+        let mut out = Vec::new();
+
+        out.extend_from_slice(&self.version.to_le_bytes());
+
+        let input_count = CompactSize::new(self.inputs.len() as u64).to_bytes();
+        out.extend_from_slice(&input_count);
+        for input in &self.inputs {
+            out.extend_from_slice(&input.to_bytes());
+        }
+        out.extend_from_slice(&self.lock_time.to_le_bytes());
+        out
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<(Self, usize), BitcoinError> {
