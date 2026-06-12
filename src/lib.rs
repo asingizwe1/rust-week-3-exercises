@@ -51,7 +51,7 @@ impl CompactSize {
             return Err(BitcoinError::InsufficientBytes);
         }
         match bytes[0] {
-            0..=252 => Ok((CompactSize::new(u64), 1)),
+            0..=252 => Ok((CompactSize::new(bytes[0] as u64), 1)),
             0xFD => {
                 if bytes.len() < 3 {
                     return Err(BitcoinError::InsufficientBytes);
