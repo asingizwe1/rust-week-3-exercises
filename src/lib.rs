@@ -75,8 +75,7 @@ impl CompactSize {
                     bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8],
                 ]);
                 Ok((CompactSize::new(val), 9))
-            } // _ => Err(BitcoinError::InvalidFormat),
-              // -> can never be reached since all possible u8 values are reached
+            }
         }
     }
 }
