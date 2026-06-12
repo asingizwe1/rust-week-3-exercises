@@ -20,6 +20,7 @@ impl CompactSize {
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
+        let mut out = Vec::new();
         // TODO: Encode according to Bitcoin's CompactSize format:
         // [0x00–0xFC] => 1 byte
         // [0xFDxxxx] => 0xFD + u16 (2 bytes)
