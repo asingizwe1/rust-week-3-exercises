@@ -204,6 +204,11 @@ pub struct TransactionInput {
 impl TransactionInput {
     pub fn new(previous_output: OutPoint, script_sig: Script, sequence: u32) -> Self {
         // TODO: Basic constructor
+        TransactionInput {
+            previous_output,
+            script_sig,
+            sequence,
+        }
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
